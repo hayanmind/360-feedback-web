@@ -1,4 +1,5 @@
 import { Client } from "@notionhq/client"
+import { unstable_cache } from "next/cache"
 import { DAILY_NOTES_DATA_SOURCE_ID, getMemberByName } from "./members"
 
 export const notion = new Client({ auth: process.env.NOTION_TOKEN })
@@ -65,7 +66,7 @@ function extractDate(page: Record<string, unknown>): string | null {
   return created ? created.split("T")[0] : null
 }
 
-export async function getSprintStandups(
+async function _getSprintStandups(
   sprintName: string,
   memberName: string
 ): Promise<StandupNote[]> {
@@ -120,6 +121,12 @@ export async function getSprintStandups(
     return []
   }
 }
+
+export const getSprintStandups = unstable_cache(
+  _getSprintStandups,
+  ["sprint-standups"],
+  { revalidate: 3600, tags: ["sprint-standups"] }
+)
 
 async function getMemberStandupContent(
   pageId: string,

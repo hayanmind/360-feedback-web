@@ -4,6 +4,8 @@ import { MEMBERS } from "@/lib/members"
 import NavBar from "@/components/NavBar"
 import MemberCard from "@/components/MemberCard"
 
+export const revalidate = 3600
+
 export default async function DashboardPage() {
   const session = await auth()
 

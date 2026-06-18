@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import NavBar from "@/components/NavBar"
 import { redirect } from "next/navigation"
 
+export const revalidate = 60
+
 type Props = {
   searchParams: Promise<{ sprintId?: string; member?: string }>
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getMemberByName } from "@/lib/members"
 import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
+import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -55,8 +56,7 @@ export default async function MemberProfilePage({ params, searchParams }: Props)
         <div className="flex items-start justify-between mb-8">
           <div className="flex items-center gap-4">
             {dbUser?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={dbUser.image} alt={name} className="w-14 h-14 rounded-full" />
+              <Image src={dbUser.image} alt={name} width={56} height={56} className="rounded-full" />
             ) : (
               <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
                 <span className="text-2xl font-semibold text-slate-400">{name[0]}</span>

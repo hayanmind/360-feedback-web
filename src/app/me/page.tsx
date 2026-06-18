@@ -33,28 +33,33 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
 
   const sprintFilter = activeSprint ? { sprintId: activeSprint.id } : {}
 
-  const received = await prisma.feedback.findMany({
-    where: { toId: session.user.id, ...sprintFilter },
-    select: {
-      id: true, scoreCompetence: true, scoreTeamwork: true, scoreExecution: true,
-      strength: true, growth: true, createdAt: true,
-      sprint: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const [received, given, stats] = await Promise.all([
+    prisma.feedback.findMany({
+      where: { toId: session.user.id, ...sprintFilter },
+      select: {
+        id: true, scoreCompetence: true, scoreTeamwork: true, scoreExecution: true,
+        strength: true, growth: true, createdAt: true,
+        sprint: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.feedback.findMany({
+      where: { fromId: session.user.id, ...sprintFilter },
+      include: {
+        to: { select: { memberName: true, name: true } },
+        sprint: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.feedback.aggregate({
+      where: { toId: session.user.id, ...sprintFilter },
+      _avg: { scoreCompetence: true, scoreTeamwork: true, scoreExecution: true },
+    }),
+  ])
 
-  const given = await prisma.feedback.findMany({
-    where: { fromId: session.user.id, ...sprintFilter },
-    include: {
-      to: { select: { memberName: true, name: true } },
-      sprint: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
-  const avgCompetence = avg(received.map((f) => f.scoreCompetence))
-  const avgTeamwork = avg(received.map((f) => f.scoreTeamwork))
-  const avgExecution = avg(received.map((f) => f.scoreExecution))
+  const avgCompetence = stats._avg.scoreCompetence !== null ? Math.round(stats._avg.scoreCompetence * 100) / 100 : null
+  const avgTeamwork = stats._avg.scoreTeamwork !== null ? Math.round(stats._avg.scoreTeamwork * 100) / 100 : null
+  const avgExecution = stats._avg.scoreExecution !== null ? Math.round(stats._avg.scoreExecution * 100) / 100 : null
   const overallAvg = avg([avgCompetence, avgTeamwork, avgExecution].filter((v) => v !== null) as number[])
 
   const sprintQuery = sprintId ? `&sprintId=${sprintId}` : activeSprint ? `&sprintId=${activeSprint.id}` : ""
