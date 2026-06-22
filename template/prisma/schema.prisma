@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  role          Role      @default(MEMBER)
+  memberName    String?   @map("member_name")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts         Account[]
+  sessions         Session[]
+  feedbackGiven    Feedback[] @relation("FeedbackFrom")
+  feedbackReceived Feedback[] @relation("FeedbackTo")
+
+  @@index([memberName])
+  @@map("users")
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Sprint {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  feedbacks Feedback[]
+
+  @@map("sprints")
+}
+
+model Backup {
+  id        String   @id @default(cuid())
+  data      String   // JSON snapshot of all data
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("backups")
+}
+
+model Feedback {
+  id              String   @id @default(cuid())
+  fromId          String   @map("from_id")
+  toId            String   @map("to_id")
+  sprintId        String   @map("sprint_id")
+  scoreCompetence Int      @map("score_competence")
+  scoreTeamwork   Int      @map("score_teamwork")
+  scoreExecution  Int      @map("score_execution")
+  strength        String
+  growth          String
+  notionSynced    Boolean  @default(false) @map("notion_synced")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  from   User   @relation("FeedbackFrom", fields: [fromId], references: [id])
+  to     User   @relation("FeedbackTo",   fields: [toId],   references: [id])
+  sprint Sprint @relation(fields: [sprintId], references: [id])
+
+  @@unique([fromId, toId, sprintId])
+  @@index([toId])
+  @@index([fromId])
+  @@index([sprintId])
+  @@index([createdAt])
+  @@map("feedbacks")
+}

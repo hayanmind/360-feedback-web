@@ -1,0 +1,21 @@
+{
+  "companyName": "Your Company",
+  "allowedDomains": ["yourcompany.com"],
+  "adminEmails": ["admin@yourcompany.com"],
+  "feedbackCycle": "sprint",
+  "sprintWeeks": 2,
+  "notionEnabled": false,
+  "notionDailyNotesDataSourceId": "",
+  "members": [
+    {
+      "name": "Member1",
+      "email": "member1@yourcompany.com",
+      "notionDbId": ""
+    },
+    {
+      "name": "Member2",
+      "email": "member2@yourcompany.com",
+      "notionDbId": ""
+    }
+  ]
+}
