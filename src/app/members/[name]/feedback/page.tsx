@@ -4,7 +4,6 @@ import { getMemberByName } from "@/lib/members"
 import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
 import FeedbackForm from "@/components/FeedbackForm"
-import SprintSummary from "@/components/SprintSummary"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 
@@ -27,7 +26,7 @@ export default async function FeedbackPage({ params }: Props) {
   const sprints = await ensureSprintsSynced()
   const activeSprint = findCurrentSprint(sprints)
 
-  // Fetch standup data for the active sprint
+  // Fetch standup data for the active sprint (SSR initial load)
   const standups = activeSprint
     ? await getSprintStandups(activeSprint.name, memberConfig.name)
     : []
@@ -54,33 +53,17 @@ export default async function FeedbackPage({ params }: Props) {
           </Link>
         </div>
 
-        {allTasks.length > 0 && (
-          <SprintSummary
-            memberName={name}
-            sprintName={activeSprint?.name ?? ""}
-            tasks={allTasks}
-          />
-        )}
-
-        <div className="bg-white rounded-2xl border border-slate-200 p-8">
-          <div className="mb-6">
-            <h1 className="text-xl font-semibold text-slate-900">Feedback for {name}</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Your response is anonymous. Be honest and constructive.
-            </p>
-          </div>
-
-          <FeedbackForm
-            toMemberName={name}
-            currentSprintId={activeSprint?.id}
-            sprints={sprints.map((s) => ({
-              id: s.id,
-              name: s.name,
-              startDate: s.startDate.toISOString(),
-              endDate: s.endDate.toISOString(),
-            }))}
-          />
-        </div>
+        <FeedbackForm
+          toMemberName={name}
+          currentSprintId={activeSprint?.id}
+          initialTasks={allTasks}
+          sprints={sprints.map((s) => ({
+            id: s.id,
+            name: s.name,
+            startDate: s.startDate.toISOString(),
+            endDate: s.endDate.toISOString(),
+          }))}
+        />
       </main>
     </>
   )
