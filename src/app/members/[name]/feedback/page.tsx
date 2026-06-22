@@ -1,8 +1,10 @@
 import { auth } from "@/auth"
 import { ensureSprintsSynced } from "@/lib/sprint-sync"
 import { getMemberByName } from "@/lib/members"
+import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
 import FeedbackForm from "@/components/FeedbackForm"
+import SprintSummary from "@/components/SprintSummary"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 
@@ -23,6 +25,24 @@ export default async function FeedbackPage({ params }: Props) {
   }
 
   const sprints = await ensureSprintsSynced()
+  const activeSprint = sprints[0]
+
+  // Fetch standup data for the active sprint
+  const standups = activeSprint
+    ? await getSprintStandups(activeSprint.name, memberConfig.name)
+    : []
+
+  // Flatten all tasks from standups into a compact summary
+  const allTasks: string[] = []
+  for (const standup of standups) {
+    for (const day of standup.weekContent) {
+      for (const task of day.tasks) {
+        if (task.trim() && !allTasks.includes(task.trim())) {
+          allTasks.push(task.trim())
+        }
+      }
+    }
+  }
 
   return (
     <>
@@ -33,6 +53,14 @@ export default async function FeedbackPage({ params }: Props) {
             ← Back to {name}&apos;s profile
           </Link>
         </div>
+
+        {allTasks.length > 0 && (
+          <SprintSummary
+            memberName={name}
+            sprintName={activeSprint?.name ?? ""}
+            tasks={allTasks}
+          />
+        )}
 
         <div className="bg-white rounded-2xl border border-slate-200 p-8">
           <div className="mb-6">

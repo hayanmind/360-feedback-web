@@ -11,7 +11,7 @@ type Props = {
   searchParams: Promise<{ sprintId?: string; member?: string }>
 }
 
-const scoreBg = (s: number) => (s > 0 ? "text-emerald-600" : s === 0 ? "text-amber-600" : "text-red-500")
+const scoreBg = (s: number) => (s > 0 ? "text-emerald-600" : s === 0 ? "text-blue-600" : "text-red-500")
 const scoreLabel = (s: number) => (s > 0 ? `+${s}` : `${s}`)
 
 export default async function AdminPage({ searchParams }: Props) {

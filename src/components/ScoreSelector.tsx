@@ -11,7 +11,7 @@ type Props = {
 
 const options: { value: Score; label: string; color: string; activeColor: string }[] = [
   { value: 1, label: "+1 Exceeds", color: "border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50", activeColor: "border-emerald-400 bg-emerald-50 text-emerald-700 font-semibold" },
-  { value: 0, label: "0 Meets", color: "border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50", activeColor: "border-amber-400 bg-amber-50 text-amber-700 font-semibold" },
+  { value: 0, label: "0 Meets", color: "border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50", activeColor: "border-blue-400 bg-blue-50 text-blue-700 font-semibold" },
   { value: -1, label: "−1 Needs", color: "border-slate-200 text-slate-600 hover:border-red-300 hover:bg-red-50", activeColor: "border-red-400 bg-red-50 text-red-700 font-semibold" },
 ]
 

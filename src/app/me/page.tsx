@@ -16,7 +16,7 @@ const scoreBadge = (s: number) =>
   s > 0
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
     : s === 0
-    ? "bg-amber-50 text-amber-700 border-amber-200"
+    ? "bg-blue-50 text-blue-700 border-blue-200"
     : "bg-red-50 text-red-700 border-red-200"
 
 function avg(vals: number[]): number | null {
@@ -148,7 +148,7 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
                     <div key={label} className="text-center">
                       <p className="text-xs text-slate-400 mb-1">{label}</p>
                       <p className={`text-lg font-bold ${
-                        value === null ? "text-slate-300" : value > 0 ? "text-emerald-600" : value === 0 ? "text-amber-600" : "text-red-500"
+                        value === null ? "text-slate-300" : value > 0 ? "text-emerald-600" : value === 0 ? "text-blue-600" : "text-red-500"
                       }`}>
                         {value === null ? "—" : value > 0 ? `+${value}` : value}
                       </p>
