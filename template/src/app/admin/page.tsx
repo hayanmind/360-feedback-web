@@ -1,8 +1,10 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { ensureSprintsSynced } from "@/lib/sprint-sync"
+import { ensureSprintsSynced, findCurrentSprint } from "@/lib/sprint-sync"
 import NavBar from "@/components/NavBar"
 import BackupRestore from "@/components/BackupRestore"
+import SprintSelector from "@/components/SprintSelector"
+import TranslateButton from "@/components/TranslateButton"
 import { redirect } from "next/navigation"
 
 export const revalidate = 60
@@ -20,7 +22,9 @@ export default async function AdminPage({ searchParams }: Props) {
   if (session?.user?.role !== "ADMIN") redirect("/dashboard")
 
   const sprints = await ensureSprintsSynced()
-  const activeSprint = sprintId ? sprints.find((s) => s.id === sprintId) : sprints[0]
+  const activeSprint = sprintId
+    ? sprints.find((s) => s.id === sprintId)
+    : findCurrentSprint(sprints)
 
   const feedbacks = await prisma.feedback.findMany({
     where: activeSprint ? { sprintId: activeSprint.id } : {},
@@ -52,54 +56,25 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="text-sm text-slate-500 mt-1">{feedbacks.length} total entries</p>
         </div>
 
-        {/* Sprint filter */}
-        <div className="flex gap-1 overflow-x-auto pb-1 mb-4">
-          <a
-            href="/admin"
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              !sprintId ? "bg-slate-900 text-white font-medium" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            All Sprints
-          </a>
-          {sprints.map((s) => (
-            <a
-              key={s.id}
-              href={`/admin?sprintId=${s.id}${memberFilter ? `&member=${memberFilter}` : ""}`}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                activeSprint?.id === s.id
-                  ? "bg-slate-900 text-white font-medium"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {s.name}
-            </a>
-          ))}
-        </div>
-
-        {/* Member filter */}
-        <div className="flex gap-1 overflow-x-auto pb-1 mb-8">
-          <a
-            href={`/admin${sprintId ? `?sprintId=${sprintId}` : ""}`}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              !memberFilter ? "bg-indigo-600 text-white font-medium" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            All Members
-          </a>
-          {members.map((m) => (
-            <a
-              key={m}
-              href={`/admin?${sprintId ? `sprintId=${sprintId}&` : ""}member=${m}`}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                memberFilter === m
-                  ? "bg-indigo-600 text-white font-medium"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {m}
-            </a>
-          ))}
+        {/* Filters */}
+        <div className="flex gap-3 mb-8">
+          <SprintSelector
+            sprints={sprints.map((s) => ({ id: s.id, name: s.name }))}
+            activeSprintId={activeSprint?.id}
+            basePath="/admin"
+            paramName="sprintId"
+            extraParams={memberFilter ? { member: memberFilter } : {}}
+            showAll
+          />
+          <SprintSelector
+            sprints={members.map((m) => ({ id: m, name: m }))}
+            activeSprintId={memberFilter}
+            basePath="/admin"
+            paramName="member"
+            extraParams={sprintId ? { sprintId } : {}}
+            showAll
+            allLabel="All Members"
+          />
         </div>
 
         {feedbacks.length === 0 ? (
@@ -157,8 +132,12 @@ export default async function AdminPage({ searchParams }: Props) {
                           <td className={`px-3 py-3 text-center font-semibold ${scoreBg(fb.scoreCompetence)}`}>{scoreLabel(fb.scoreCompetence)}</td>
                           <td className={`px-3 py-3 text-center font-semibold ${scoreBg(fb.scoreTeamwork)}`}>{scoreLabel(fb.scoreTeamwork)}</td>
                           <td className={`px-3 py-3 text-center font-semibold ${scoreBg(fb.scoreExecution)}`}>{scoreLabel(fb.scoreExecution)}</td>
-                          <td className="px-4 py-3 text-slate-600 max-w-xs">{fb.strength}</td>
-                          <td className="px-4 py-3 text-slate-600 max-w-xs">{fb.growth}</td>
+                          <td className="px-4 py-3 max-w-xs">
+                            <TranslateButton text={fb.strength} />
+                          </td>
+                          <td className="px-4 py-3 max-w-xs">
+                            <TranslateButton text={fb.growth} />
+                          </td>
                           <td className="px-3 py-3">
                             <span className={`text-xs font-medium ${fb.notionSynced ? "text-emerald-600" : "text-slate-300"}`}>
                               {fb.notionSynced ? "✓" : "—"}

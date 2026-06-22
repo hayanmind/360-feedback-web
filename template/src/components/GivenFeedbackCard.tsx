@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import TranslateButton from "./TranslateButton"
 
 type Feedback = {
   id: string
@@ -168,11 +169,11 @@ export default function GivenFeedbackCard({ feedback, index }: { feedback: Feedb
           </div>
           <div className="mb-3">
             <p className="text-xs font-medium text-slate-400 mb-1">⭐ Strength</p>
-            <p className="text-sm text-slate-700">{feedback.strength}</p>
+            <TranslateButton text={feedback.strength} />
           </div>
           <div>
             <p className="text-xs font-medium text-slate-400 mb-1">🌱 Growth Area</p>
-            <p className="text-sm text-slate-700">{feedback.growth}</p>
+            <TranslateButton text={feedback.growth} />
           </div>
         </>
       )}
