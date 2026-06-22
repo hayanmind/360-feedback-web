@@ -89,6 +89,14 @@ model Sprint {
   @@map("sprints")
 }
 
+model Backup {
+  id        String   @id @default(cuid())
+  data      String   // JSON snapshot of all data
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("backups")
+}
+
 model Feedback {
   id              String   @id @default(cuid())
   fromId          String   @map("from_id")
