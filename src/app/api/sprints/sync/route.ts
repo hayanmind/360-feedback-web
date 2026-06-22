@@ -22,7 +22,7 @@ export async function GET() {
       data_source_id: DAILY_NOTES_DATA_SOURCE_ID,
       filter: { property: "Name", rich_text: { contains: "Daily Standup S" } },
       sorts: [{ property: "Date", direction: "descending" }],
-      page_size: 30,
+      page_size: 100,
     })
 
     // Parse sprint info from Notion pages
