@@ -1,8 +1,10 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { ensureSprintsSynced } from "@/lib/sprint-sync"
+import { ensureSprintsSynced, findCurrentSprint } from "@/lib/sprint-sync"
 import NavBar from "@/components/NavBar"
+import SprintSelector from "@/components/SprintSelector"
 import GivenFeedbackCard from "@/components/GivenFeedbackCard"
+import TranslateButton from "@/components/TranslateButton"
 import { redirect } from "next/navigation"
 
 type Props = {
@@ -30,7 +32,9 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
   if (!session?.user?.id) redirect("/login")
 
   const sprints = await ensureSprintsSynced()
-  const activeSprint = sprintId ? sprints.find((s) => s.id === sprintId) : sprints[0]
+  const activeSprint = sprintId
+    ? sprints.find((s) => s.id === sprintId)
+    : findCurrentSprint(sprints)
 
   const sprintFilter = activeSprint ? { sprintId: activeSprint.id } : {}
 
@@ -75,30 +79,15 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
 
         {/* Sprint filter */}
         {sprints.length > 0 && (
-          <div className="flex gap-1 overflow-x-auto pb-1 mb-6">
-            <a
-              href={`/me?tab=${tab}`}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                !sprintId
-                  ? "bg-slate-900 text-white font-medium"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              All Sprints
-            </a>
-            {sprints.map((s) => (
-              <a
-                key={s.id}
-                href={`/me?tab=${tab}&sprintId=${s.id}`}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  activeSprint?.id === s.id
-                    ? "bg-slate-900 text-white font-medium"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {s.name}
-              </a>
-            ))}
+          <div className="mb-6">
+            <SprintSelector
+              sprints={sprints.map((s) => ({ id: s.id, name: s.name }))}
+              activeSprintId={activeSprint?.id}
+              basePath="/me"
+              paramName="sprintId"
+              extraParams={{ tab }}
+              showAll
+            />
           </div>
         )}
 
@@ -179,13 +168,13 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
                     {fb.strength && (
                       <div className="mb-3">
                         <p className="text-xs font-medium text-slate-400 mb-1">⭐ Strength</p>
-                        <p className="text-sm text-slate-700">{fb.strength}</p>
+                        <TranslateButton text={fb.strength} />
                       </div>
                     )}
                     {fb.growth && (
                       <div>
                         <p className="text-xs font-medium text-slate-400 mb-1">🌱 Growth Area</p>
-                        <p className="text-sm text-slate-700">{fb.growth}</p>
+                        <TranslateButton text={fb.growth} />
                       </div>
                     )}
                   </div>

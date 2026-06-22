@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { ensureSprintsSynced } from "@/lib/sprint-sync"
+import { ensureSprintsSynced, findCurrentSprint } from "@/lib/sprint-sync"
 import { getMemberByName } from "@/lib/members"
 import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
@@ -25,7 +25,7 @@ export default async function FeedbackPage({ params }: Props) {
   }
 
   const sprints = await ensureSprintsSynced()
-  const activeSprint = sprints[0]
+  const activeSprint = findCurrentSprint(sprints)
 
   // Fetch standup data for the active sprint
   const standups = activeSprint
@@ -72,6 +72,7 @@ export default async function FeedbackPage({ params }: Props) {
 
           <FeedbackForm
             toMemberName={name}
+            currentSprintId={activeSprint?.id}
             sprints={sprints.map((s) => ({
               id: s.id,
               name: s.name,

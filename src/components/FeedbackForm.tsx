@@ -10,11 +10,12 @@ type Score = -1 | 0 | 1
 type Props = {
   toMemberName: string
   sprints: Sprint[]
+  currentSprintId?: string
 }
 
-export default function FeedbackForm({ toMemberName, sprints }: Props) {
+export default function FeedbackForm({ toMemberName, sprints, currentSprintId }: Props) {
   const router = useRouter()
-  const [sprintId, setSprintId] = useState(sprints[0]?.id ?? "")
+  const [sprintId, setSprintId] = useState(currentSprintId ?? sprints[0]?.id ?? "")
   const [scoreCompetence, setScoreCompetence] = useState<Score | null>(null)
   const [scoreTeamwork, setScoreTeamwork] = useState<Score | null>(null)
   const [scoreExecution, setScoreExecution] = useState<Score | null>(null)

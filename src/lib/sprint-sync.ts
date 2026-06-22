@@ -2,10 +2,42 @@ import { prisma } from "@/lib/prisma"
 import { notion } from "@/lib/notion"
 import { DAILY_NOTES_DATA_SOURCE_ID } from "@/lib/members"
 
+/** Extract sprint number from name like "2026-S13" → 13 */
+function sprintNumber(name: string): number {
+  const m = name.match(/S(\d+)/)
+  return m ? parseInt(m[1]) : 0
+}
+
+/** Sort sprints by number descending (S13, S12, S11, ...) */
+function sortSprints<T extends { name: string }>(sprints: T[]): T[] {
+  return [...sprints].sort((a, b) => sprintNumber(b.name) - sprintNumber(a.name))
+}
+
+/** Find the current sprint (contains today) or most recent past sprint */
+export function findCurrentSprint<T extends { startDate: Date; endDate: Date }>(sprints: T[]): T | undefined {
+  const today = new Date()
+  // First try: sprint whose date range contains today
+  const current = sprints.find((s) => s.startDate <= today && s.endDate >= today)
+  if (current) return current
+  // Fallback: most recent sprint that has already started
+  const past = sprints.filter((s) => s.startDate <= today)
+  if (past.length === 0) return sprints[0]
+  return past.reduce((a, b) => (a.startDate > b.startDate ? a : b))
+}
+
+/** Filter out future sprints (only keep current + past) */
+function filterCurrentSprints<T extends { name: string; startDate: Date; endDate: Date }>(sprints: T[]): T[] {
+  const current = findCurrentSprint(sprints)
+  if (!current) return sprints
+  const currentNum = sprintNumber(current.name)
+  // Keep only sprints with number <= current sprint number
+  return sprints.filter((s) => sprintNumber(s.name) <= currentNum)
+}
+
 /**
  * Ensures all sprints from Notion daily standup DB exist in the web app DB.
  * Safe to call on every page load — only creates missing sprints.
- * Returns the list of all sprints after sync.
+ * Returns the list of current/past sprints after sync (sorted by sprint number desc).
  */
 export async function ensureSprintsSynced() {
   const existingSprints = await prisma.sprint.findMany({
@@ -13,7 +45,7 @@ export async function ensureSprintsSynced() {
   })
 
   // Only sync if NOTION_TOKEN is available
-  if (!process.env.NOTION_TOKEN) return existingSprints
+  if (!process.env.NOTION_TOKEN) return sortSprints(filterCurrentSprints(existingSprints))
 
   try {
     const response = await notion.dataSources.query({
@@ -105,11 +137,12 @@ export async function ensureSprintsSynced() {
 
     // Re-fetch if new sprints were created
     if (created) {
-      return prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+      const all = await prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+      return sortSprints(filterCurrentSprints(all))
     }
-    return existingSprints
+    return sortSprints(filterCurrentSprints(existingSprints))
   } catch (err) {
     console.error("Sprint auto-sync failed:", err)
-    return existingSprints
+    return sortSprints(filterCurrentSprints(existingSprints))
   }
 }

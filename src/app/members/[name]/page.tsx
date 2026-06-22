@@ -1,9 +1,10 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { ensureSprintsSynced } from "@/lib/sprint-sync"
+import { ensureSprintsSynced, findCurrentSprint } from "@/lib/sprint-sync"
 import { getMemberByName } from "@/lib/members"
 import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
+import SprintSelector from "@/components/SprintSelector"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -27,7 +28,7 @@ export default async function MemberProfilePage({ params, searchParams }: Props)
   const sprints = await ensureSprintsSynced()
   const activeSprint = sprintParam
     ? sprints.find((s) => s.name === sprintParam)
-    : sprints[0]
+    : findCurrentSprint(sprints)
 
   // Check if current user already submitted feedback for this member this sprint
   let alreadySubmitted = false
@@ -100,24 +101,15 @@ export default async function MemberProfilePage({ params, searchParams }: Props)
           </div>
         )}
 
-        {/* Sprint tabs */}
+        {/* Sprint selector */}
         {sprints.length > 0 && (
           <div className="mb-6">
-            <div className="flex gap-1 overflow-x-auto pb-1">
-              {sprints.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/members/${name}?sprint=${s.name}`}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                    activeSprint?.id === s.id
-                      ? "bg-slate-900 text-white font-medium"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {s.name}
-                </Link>
-              ))}
-            </div>
+            <SprintSelector
+              sprints={sprints.map((s) => ({ id: s.name, name: s.name }))}
+              activeSprintId={activeSprint?.name}
+              basePath={`/members/${name}`}
+              paramName="sprint"
+            />
           </div>
         )}
 
