@@ -1,6 +1,8 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ensureSprintsSynced } from "@/lib/sprint-sync"
 import NavBar from "@/components/NavBar"
+import BackupRestore from "@/components/BackupRestore"
 import { redirect } from "next/navigation"
 
 export const revalidate = 60
@@ -17,7 +19,7 @@ export default async function AdminPage({ searchParams }: Props) {
   const session = await auth()
   if (session?.user?.role !== "ADMIN") redirect("/dashboard")
 
-  const sprints = await prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+  const sprints = await ensureSprintsSynced()
   const activeSprint = sprintId ? sprints.find((s) => s.id === sprintId) : sprints[0]
 
   const feedbacks = await prisma.feedback.findMany({
@@ -171,6 +173,10 @@ export default async function AdminPage({ searchParams }: Props) {
             })}
           </div>
         )}
+
+        <div className="mt-10">
+          <BackupRestore />
+        </div>
       </main>
     </>
   )

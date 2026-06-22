@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ensureSprintsSynced } from "@/lib/sprint-sync"
 import NavBar from "@/components/NavBar"
 import GivenFeedbackCard from "@/components/GivenFeedbackCard"
 import { redirect } from "next/navigation"
@@ -28,7 +29,7 @@ export default async function MyFeedbackPage({ searchParams }: Props) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const sprints = await prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+  const sprints = await ensureSprintsSynced()
   const activeSprint = sprintId ? sprints.find((s) => s.id === sprintId) : sprints[0]
 
   const sprintFilter = activeSprint ? { sprintId: activeSprint.id } : {}

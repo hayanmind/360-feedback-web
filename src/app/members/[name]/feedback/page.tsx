@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
+import { ensureSprintsSynced } from "@/lib/sprint-sync"
 import { getMemberByName } from "@/lib/members"
 import NavBar from "@/components/NavBar"
 import FeedbackForm from "@/components/FeedbackForm"
@@ -22,7 +22,7 @@ export default async function FeedbackPage({ params }: Props) {
     redirect(`/members/${name}`)
   }
 
-  const sprints = await prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+  const sprints = await ensureSprintsSynced()
 
   return (
     <>

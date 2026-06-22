@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ensureSprintsSynced } from "@/lib/sprint-sync"
 import { getMemberByName } from "@/lib/members"
 import { getSprintStandups } from "@/lib/notion"
 import NavBar from "@/components/NavBar"
@@ -22,8 +23,8 @@ export default async function MemberProfilePage({ params, searchParams }: Props)
   const session = await auth()
   const isOwnProfile = session?.user?.memberName?.toLowerCase() === name.toLowerCase()
 
-  // Get sprints
-  const sprints = await prisma.sprint.findMany({ orderBy: { startDate: "desc" } })
+  // Get sprints (auto-creates missing ones from Notion)
+  const sprints = await ensureSprintsSynced()
   const activeSprint = sprintParam
     ? sprints.find((s) => s.name === sprintParam)
     : sprints[0]

@@ -14,6 +14,7 @@ const sprints = [
   { name: "2026-S10", startDate: new Date("2026-05-07"), endDate: new Date("2026-05-20") },
   { name: "2026-S11", startDate: new Date("2026-05-21"), endDate: new Date("2026-06-03") },
   { name: "2026-S12", startDate: new Date("2026-06-04"), endDate: new Date("2026-06-17") },
+  { name: "2026-S13", startDate: new Date("2026-06-18"), endDate: new Date("2026-07-01") },
 ]
 
 async function main() {
