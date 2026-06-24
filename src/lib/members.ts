@@ -29,6 +29,11 @@ export const MEMBERS = [
     email: "viktoriya.kim@hayanmind.com",
     notionDbId: "248a9757-5795-80ef-bff2-000b19f918a8",
   },
+  {
+    name: "Adnan",
+    email: "adnan1@hayanmind.com",
+    notionDbId: "",
+  },
 ] as const
 
 export type MemberName = (typeof MEMBERS)[number]["name"]
